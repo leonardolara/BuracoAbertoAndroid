@@ -136,9 +136,9 @@ public class BuracoAberto extends Activity {
             //mantem altura
             factor = (float)h/320f;
         }
-        System.out.println(factor);
-        System.out.println(w);
-        System.out.println(h);
+        //System.out.println(factor);
+        //System.out.println(w);
+        //System.out.println(h);
 
         mao = new ClasseMao[8];
         mesa = new ClasseMesa[2];
@@ -153,7 +153,9 @@ public class BuracoAberto extends Activity {
         jogo_acabou = false;
         if (smallRes) {
             screenWidth = 240f*factor;
+            System.out.println(screenWidth);
             screenHeight = 320f*factor;
+            System.out.println(screenHeight);
         } else {
             screenWidth = 1366f;//Screen.getPrimary().getVisualBounds().getWidth();
             screenHeight = 768f;//Screen.getPrimary().getVisualBounds().getHeight();
@@ -166,45 +168,16 @@ public class BuracoAberto extends Activity {
         Bitmap vermelho = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.crm), 70, 100, true);
         Bitmap azul = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.czl), 70, 100, true);
         int i;
-        for (int cor=VERMELHO;cor<=AZUL;cor++){
-            for (int naipe=ESPADAS;naipe<=OUROS;naipe++){
-                for (int ct=AS;ct<=REI;ct++){
-                    i = (ct-1) + NUMCARTAS * (naipe-1) + UMBARALHO * (cor-1);
-                    baralho[i] = new ClasseCarta(getApplicationContext());
-                    baralho[i].layout(0,0,(int)(35f*factor),(int)(50f*factor));
-                    if (ct==AS) baralho[i].valor = ALTO;
-                    else if ((ct>=TRES) && (ct<=SETE)) baralho[i].valor = BAIXO;
-                    else baralho[i].valor = MEDIO;
-                    baralho[i].carta = ct;
-                    baralho[i].naipe = naipe;
-                    baralho[i].cor = cor;
-                    baralho[i].selecionada = false;
-                    baralho[i].zOrder = i+2;
-                    System.out.println(i);
-                    baralho[i].frente = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),nomes[i%52]),70,100,true);
-                    if (cor==VERMELHO) baralho[i].verso = vermelho;
-                    else baralho[i].verso = azul;
-                    baralho[i].setImageBitmap(baralho[i].verso);
-                    baralho[i].setOnClickListener(new View.OnClickListener(){
-                        @Override
-                        public void onClick(View ct) {
-                            carta_click(ct);
-                        }
-                    });
-                }
-            }
-        }
+
         for (i=0;i<8;i++) mao[i] = new ClasseMao();
         for (i=0;i<2;i++) mesa[i] = new ClasseMesa();
-        for (i=0;i<MAXCARTAS;i++){
-            mao[MONTE].cartas.add(baralho[i]);
-        }
+
         if (smallRes) {
             mao[JOG1].setPosInit(10f*factor, 285f*factor, 8f*factor, 0f*factor);
             mao[JOG2].setPosInit(243f*factor, 7f*factor, 0f*factor, 8f*factor);
             mao[JOG3].setPosInit(10f*factor, -45f*factor, 8f*factor, 0f*factor);
             mao[JOG4].setPosInit(-36f*factor, 10f*factor, 0f*factor, 8f*factor);
-            mao[MONTE].setPosInit(10f*factor, 120f*factor, 0f*factor, 0f*factor);
+            mao[MONTE].setPosInit(10f * factor, 120f*factor, 0f*factor, 0f*factor);
             mao[LIXO].setPosInit(50f*factor, 120f*factor, 8f*factor, 0f*factor);
             mao[MORTO1].setPosInit(-30f*factor, -40f*factor, 0f*factor, 0f*factor);
             mao[MORTO2].setPosInit(-25f*factor, -45f*factor, 0f*factor, 0f*factor);
@@ -230,6 +203,46 @@ public class BuracoAberto extends Activity {
             screenCenterX = 648f;
             screenCenterY = 291f;
         }
+
+        for (int cor=VERMELHO;cor<=AZUL;cor++){
+            for (int naipe=ESPADAS;naipe<=OUROS;naipe++){
+                for (int ct=AS;ct<=REI;ct++){
+                    i = (ct-1) + NUMCARTAS * (naipe-1) + UMBARALHO * (cor-1);
+                    baralho[i] = new ClasseCarta(getApplicationContext());
+                    baralho[i].setTop((int)screenCenterY);
+                    System.out.println(screenCenterX);
+                    System.out.println((int)screenCenterX);
+                    baralho[i].setLeft((int)screenCenterX);
+                    //baralho[i].setTranslationX((float)(screenWidth-larguraCarta()/2f)+larguraCarta()/2f);
+                    //baralho[i].setTranslationY((float)Math.random()*(screenHeight-alturaCarta()/2f)+alturaCarta()/2f);
+                    //baralho[i].layout((int)Math.random()*(int)(screenWidth-larguraCarta()),(int)Math.random()*(int)(screenHeight-alturaCarta()),(int)(35f*factor),(int)(50f*factor));
+                    if (ct==AS) baralho[i].valor = ALTO;
+                    else if ((ct>=TRES) && (ct<=SETE)) baralho[i].valor = BAIXO;
+                    else baralho[i].valor = MEDIO;
+                    baralho[i].carta = ct;
+                    baralho[i].naipe = naipe;
+                    baralho[i].cor = cor;
+                    baralho[i].selecionada = false;
+                    baralho[i].zOrder = i+2;
+                    System.out.println(i);
+                    baralho[i].frente = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),nomes[i%52]),70,100,true);
+                    if (cor==VERMELHO) baralho[i].verso = vermelho;
+                    else baralho[i].verso = azul;
+                    baralho[i].setImageBitmap(baralho[i].verso);
+                    baralho[i].setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View ct) {
+                            carta_click(ct);
+                        }
+                    });
+                }
+            }
+        }
+
+        for (i=0;i<MAXCARTAS;i++){
+            mao[MONTE].cartas.add(baralho[i]);
+        }
+
 
     }
 
@@ -319,7 +332,7 @@ public class BuracoAberto extends Activity {
         lblMesa2.bringToFront();
         updateZOrder();
 
-        play(0); //põe o monte na mesa, dsitribui as cartas e joga a primeira no lixo.
+        //play(0); //põe o monte na mesa, dsitribui as cartas e joga a primeira no lixo.
 
         masterListener = new Timer();
         masterListener.schedule(new TimerTask() {
