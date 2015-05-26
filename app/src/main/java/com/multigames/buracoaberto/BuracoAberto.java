@@ -153,9 +153,9 @@ public class BuracoAberto extends Activity {
         jogo_acabou = false;
         if (smallRes) {
             screenWidth = 240f*factor;
-            System.out.println(screenWidth);
+            System.out.println("width: " + screenWidth);
             screenHeight = 320f*factor;
-            System.out.println(screenHeight);
+            System.out.println("height:" + screenHeight);
         } else {
             screenWidth = 1366f;//Screen.getPrimary().getVisualBounds().getWidth();
             screenHeight = 768f;//Screen.getPrimary().getVisualBounds().getHeight();
@@ -2104,7 +2104,6 @@ public class BuracoAberto extends Activity {
         //root.getChildren().add(mesadejogos); //mesa zOrder 1
         for (int k=0;k<mao[MONTE].cartas.size();k++){
             mao[MONTE].cartas.get(k).zOrder=k+2; //vai de 2 a 105
-            System.out.println(k);
             root.addView(mao[MONTE].cartas.get(k), (int) (larguraCarta()), (int) (alturaCarta()));
         }
         root.addView(lblMesa1,lblMesa1.getWidth(),lblMesa1.getHeight());
