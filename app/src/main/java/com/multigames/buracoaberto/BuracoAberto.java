@@ -246,8 +246,8 @@ public class BuracoAberto extends Activity {
 
     private void play(final int k){
         TranslateAnimation pausa = new TranslateAnimation(0f,0f,0f,0f);
-        pausa.setDuration(10L);
-        pausa.initialize(10,10,20,20);
+        pausa.cancel();
+        pausa.setDuration(5000L);
         pausa.setFillAfter(true);
         pausa.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -282,7 +282,8 @@ public class BuracoAberto extends Activity {
             public void onAnimationRepeat(Animation animation) {
             }
         });
-        pausa.start();
+        lblMesa1.setAnimation(pausa);
+        lblMesa1.getAnimation().start();
     }
 
     private void jogo () {
@@ -918,7 +919,6 @@ public class BuracoAberto extends Activity {
     }
 
     private void fxDistribui(Long tempo) {
-        long t;
         int k,j;
         for (k=0;k<CARTASMORTO;k++){
             for (j=MORTO1;j<=MORTO2;j++){
@@ -927,8 +927,7 @@ public class BuracoAberto extends Activity {
         }
         for (k=0;k<CARTASJOG;k++){
             for (j=JOG1;j<=JOG4;j++){
-                if (j==JOG1) t=20L; else t=1L;
-                transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, j, tempo * t);
+                transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, j, tempo);
             }
         }
     }
