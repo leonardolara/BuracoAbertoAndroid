@@ -33,6 +33,7 @@ public class ClasseCarta extends ImageView {
     public ClasseCarta(Context context) {
         super(context);
         anim = new AnimationSet(false);
+        anim.setFillAfter(true);
         praCima = false;
         selecionada = false;
         angulo = 0f;
@@ -133,7 +134,7 @@ public class ClasseCarta extends ImageView {
                 public void onAnimationRepeat(Animation animation) {
                 }
             });
-            viraCarta.setFillAfter(false);
+            viraCarta.setFillAfter(true);
             viraCarta.cancel();
             this.anim.addAnimation(viraCarta);
         }
@@ -173,7 +174,7 @@ public class ClasseCarta extends ImageView {
                 public void onAnimationRepeat(Animation animation) {
                 }
             });
-            viraCarta.setFillAfter(false);
+            viraCarta.setFillAfter(true);
             viraCarta.cancel();
             this.anim.addAnimation(viraCarta);
         }

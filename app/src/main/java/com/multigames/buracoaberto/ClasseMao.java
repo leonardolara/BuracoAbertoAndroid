@@ -31,7 +31,6 @@ public class ClasseMao {
     public ImageView tarja;
     private final String[] jogos = new String[]{"223456789DJQKA", "A23456789DJQKA", "A22456789DJQKA", "A23256789DJQKA", "A23426789DJQKA", "A23452789DJQKA", "A23456289DJQKA", "A23456729DJQKA", "A23456782DJQKA", "A234567892JQKA", "A23456789D2QKA", "A23456789DJ2KA", "A23456789DJQ2A", "A23456789DJQK2"};;
     private boolean orientation;
-    public AnimationSet anim;
     public float kkk;
     public Bitmap limpa;
     public Bitmap suja;
@@ -49,7 +48,6 @@ public class ClasseMao {
         */
         this.cartas = new ArrayList<ClasseCarta>();
         this.orientation = HORIZONTAL;
-        this.anim = new AnimationSet(false);
         kkk = 0.0f;
     }
 
