@@ -14,7 +14,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Region;
 import android.view.ViewGroup;
-import android.view.animation.AnimationSet;
 import android.widget.TextView;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -267,48 +266,18 @@ public class BuracoAberto extends Activity {
                 if (k < 103) {
                     play(k + 1);
                 } else {
-                    ;parei aqui
-                    AnimationSet anim = new AnimationSet(false);
-                    anim.addAnimation(distribui(20L));
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            mao[LIXO].cartas.get(mao[LIXO].cartas.size()-1).setAnimation(transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO));
-                            mao[LIXO].cartas.get(mao[LIXO].cartas.size()-1).getAnimation().setAnimationListener(new Animation.AnimationListener() {
-                                @Override
-                                public void onAnimationStart(Animation animation) {
-                                }
-
-                                @Override
-                                public void onAnimationEnd(Animation animation) {
-                                    vez = 0f;
-                                }
-
-                                @Override
-                                public void onAnimationRepeat(Animation animation) {
-                                }
-                            });
-                            mao[LIXO].cartas.get(mao[LIXO].cartas.size()-1).getAnimation().start();
-                            //só aparecem os contornos depois de distribuir as cartas
-                            //lixo.setStyle("-fx-border-color: #AAAAAA;");
-                            //mesadejogos.setStyle("-fx-border-color: #AAAAAA;");
-                            //lblMesa1.setStyle("-fx-border-color: #AAAAAA;");
-                            //lblMesa2.setStyle("-fx-border-color: #AAAAAA;");
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-
+                    fxDistribui(20L);
+                    mao[JOG1].play();
+                    mao[JOG2].play();
+                    mao[JOG3].play();
+                    mao[JOG4].play();
+                    mao[MORTO1].play();
+                    mao[MORTO2].play();
+                    transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO);
+                    mao[LIXO].play();
+                    vez = 0f;
                 }
             }
-
             @Override
             public void onAnimationRepeat(Animation animation) {
             }
@@ -336,189 +305,104 @@ public class BuracoAberto extends Activity {
         masterListener.schedule(new TimerTask() {
             @Override
             public void run() {
-                AnimationSet anim;
                 if ((vez == -1f) && (oldvez == -1f) && jogo_acabou) {
                     terminaJogo();
                 } else if (((oldvez == -1f) || (oldvez == 3.3f)) && (vez == 0f)) {
                     oldvez = 0f;
-                } else if ((oldvez == 0f) && (vez == 1.1f)) {
-                    oldvez = 1.1f;
-                    anim = botCompra(JOG2);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
+                } else if (((oldvez == 0f)||(oldvez-(int)oldvez == 0.3f)) && (vez-(int)vez == 0.1f)) {
+                    oldvez = vez;
+                    botCompra((int) vez);
+                    for (ClasseCarta ct:mao[(int)vez].cartas) {
+                        if (!ct.anim.getAnimations().isEmpty()) {
+                            ct.anim.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
 
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 1.2f;
-                        }
+                                }
 
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 1.1f) && (vez == 1.2f)) {
-                    //passou a vez para o jogador 2 descer
-                    oldvez = 1.2f;
-                    anim = botDesce(JOG2);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    vez=vez+0.1f;
+                                }
 
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 1.3f;
-                        }
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
 
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
+                                }
+                            });
+                            break;
                         }
-                    });
-                    anim.start();
-                } else if ((oldvez == 1.2f) && (vez == 1.3f)) {
-                    //passou a vez para o jogador 2 descartar
-                    oldvez = 1.3f;
-                    anim = botDescarta(JOG2);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
+                    }
+                    mao[(int)vez].play(); //anima as cartas da mão
 
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 2.1f;
-                        }
+                } else if ((oldvez-(int)oldvez == 0.1f) && (vez-(int)vez == 0.2f)) {
+                    oldvez = vez;
+                    boolean desceu = botDesce((int) vez);
+                    if (desceu) {
+                        for (ClasseCarta ct:mao[(int)vez].cartas) {
+                            if (!ct.anim.getAnimations().isEmpty()) {
+                                ct.anim.setAnimationListener(new Animation.AnimationListener() {
+                                    @Override
+                                    public void onAnimationStart(Animation animation) {
 
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 1.3f) && (vez == 2.1f)) {
-                    //passou a vez para o jogador 3 comprar
-                    oldvez = 2.1f;
-                    anim = botCompra(JOG3);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
+                                    }
 
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 2.2f;
-                        }
+                                    @Override
+                                    public void onAnimationEnd(Animation animation) {
+                                        vez += 0.1f;
+                                    }
 
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 2.1f) && (vez == 2.2f)) {
-                    //passou a vez para o jogador 3 descer
-                    oldvez = 2.2f;
-                    anim = botDesce(JOG3);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
+                                    @Override
+                                    public void onAnimationRepeat(Animation animation) {
 
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 2.3f;
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 2.2f) && (vez == 2.3f)) {
-                    //passou a vez para o jogador 3 descartar
-                    oldvez = 2.3f;
-                    anim = botDescarta(JOG3);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 3.1f;
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 2.3f) && (vez == 3.1f)) {
-                    //passou a vez para o jogador 4 comprar
-                    oldvez = 3.1f;
-                    anim = botCompra(JOG4);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 3.2f;
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 3.1f) && (vez == 3.2f)) {
-                    //passou a vez para o jogador 4 descer
-                    oldvez = 3.2f;
-                    anim = botDesce(JOG4);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            vez = 3.3f;
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-                        }
-                    });
-                    anim.start();
-                } else if ((oldvez == 3.2f) && (vez == 3.3f)) {
-                    //passou a vez para o jogador 2 descartar
-                    oldvez = 3.3f;
-                    anim = botDescarta(JOG4);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            if (jogo_acabou) {
-                                terminaJogo();
-                            } else {
-                                vez = 0f;
-                                //SUA_VEZ.start();
+                                    }
+                                });
+                                break;
                             }
                         }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
+                        mao[(int)vez].play(); //anima as cartas da mão
+                        int ms;
+                        if ((int)vez==JOG3) ms=0; else ms=1;
+                        for (ClasseMao m:mesa[ms].maos) {
+                            m.play(); //anima os jogos da mesa
                         }
-                    });
-                    anim.start();
+                    }
+                    else {
+                        vez += 0.1f;
+                    }
+
+                } else if ((oldvez-(int)oldvez == 0.2f) && (vez-(int)vez == 0.3f)) {
+                    oldvez = vez;
+                    botDescarta((int) vez);
+                    verificaSeAcabou((int)vez);
+                    for (ClasseCarta ct:mao[LIXO].cartas) {
+                        if (!ct.anim.getAnimations().isEmpty()) {
+                            ct.anim.setAnimationListener(new Animation.AnimationListener() {
+                                @Override
+                                public void onAnimationStart(Animation animation) {
+
+                                }
+
+                                @Override
+                                public void onAnimationEnd(Animation animation) {
+                                    vez = (int)vez + 1.1f;
+                                    if (vez>3.3f) vez=0f;
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(Animation animation) {
+
+                                }
+                            });
+                            break;
+                        }
+                    }
+                    mao[MONTE].play();
+                    mao[LIXO].play();
+                    mao[(int)vez].play();
                 }
             }
-        }, 0L, 1000L);
+        }, 0L, 3000L);
         //cria um "listener" a cada 1.0s para sincronizar o jogo com as animações
     }
 
@@ -804,7 +688,6 @@ public class BuracoAberto extends Activity {
             mao[origem].cartas.remove(index);
 
             /*********VIRA A CARTA PRA CIMA OU PARA BAIXO********/
-            AnimationSet pt = new AnimationSet(false);
             if (!DEBUGMODE){
                 if (origem!=JOG1){
                     maoDestino.cartas.get(maoDestino.cartas.size()-1).fxViraPraCima(tempo);
@@ -973,7 +856,6 @@ public class BuracoAberto extends Activity {
             mao[origem].cartas.remove(index);
 
             /*********VIRA A CARTA PRA CIMA OU PARA BAIXO********/
-            AnimationSet pt = new AnimationSet(false);
             if (DEBUGMODE && (destino==MONTE)){
                 maoDestino.cartas.get(maoDestino.cartas.size() - 1).fxViraPraCima(tempo); //faz a animação da carta virando pra baixo
             }
@@ -1035,7 +917,7 @@ public class BuracoAberto extends Activity {
         }
     }
 
-    private void fxdistribui(Long tempo) {
+    private void fxDistribui(Long tempo) {
         long t;
         int k,j;
         for (k=0;k<CARTASMORTO;k++){
@@ -1667,10 +1549,9 @@ public class BuracoAberto extends Activity {
         //reiniciaJogo();
     }
 
-    private void verificaSeAcabou(int j, int m) {
-        //System.out.println("verificaSeAcabou()"+j+" "+m);
-        if (m==MESA1) m=0;
-        if (m==MESA2) m=1;
+    private void verificaSeAcabou(int j) {
+        int m;
+        if (j==JOG3) m=0; else m=1;
         if (mao[j].cartas.isEmpty()) {
             if (mesa[m].pegouMorto) {
                 mesa[m].bateu = true;

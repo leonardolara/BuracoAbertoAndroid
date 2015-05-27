@@ -181,6 +181,7 @@ public class ClasseCarta extends ImageView {
 
     public void play() {
         this.anim.cancel();
+        this.anim.setDuration(TEMPO);
         this.setAnimation(anim);
         this.getAnimation().start();
     }
