@@ -10,10 +10,8 @@ package com.multigames.buracoaberto;
  */
 
 import static com.multigames.buracoaberto.ClasseCarta.TEMPO;
-
 import java.util.ArrayList;
 import java.util.List;
-import android.graphics.BitmapFactory;
 import android.view.View;
 import android.view.animation.AnimationSet;
 import android.view.animation.Interpolator;
@@ -355,7 +353,7 @@ public class ClasseMao {
         return k;
     }
 
-    public ScaleAnimation fxMostraTarja(String tipo, float lgCarta) {
+    public void fxMostraTarja(String tipo, float lgCarta) {
         if (null != tipo) switch (tipo.charAt(0)) {
             case 'L':
                 if (!this.tarja.equals(this.limpa)) this.tarja.setImageBitmap(this.limpa);
@@ -369,24 +367,26 @@ public class ClasseMao {
         tarja.setMaxWidth(1);
         tarja.setVisibility(View.VISIBLE);
         tarja.bringToFront();
-        tarja.setClickable(true);
+        tarja.setClickable(false);
         final float width = this.largura(lgCarta);
         ScaleAnimation st = new ScaleAnimation(1f,1f,1f,1f); //dummy
-        st.setDuration((long)TEMPO * 1000L);
+        st.setDuration(TEMPO);
         st.setInterpolator(new Interpolator() {
             @Override
             public float getInterpolation(float v) {
-                tarja.setMaxWidth((int)Math.max(width * v, 1.0));
+                tarja.setMaxWidth((int) Math.max(width * v, 1.0));
                 return v;
             }
         });
-        return st;
+        st.setFillAfter(true);
+        st.cancel();
+        tarja.setAnimation(st);
     }
 
-    public TranslateAnimation fxMoveTarja(float lgCarta) {
+    public void fxMoveTarja(float lgCarta) {
         if (this.tarja.getVisibility()==View.VISIBLE){
             TranslateAnimation translate= new TranslateAnimation(this.posInitX,this.posInitY,this.posInitX,this.posInitY+0.6f*lgCarta/0.7f);
-            translate.setDuration((long)TEMPO*1000L);
+            translate.setDuration(TEMPO);
             final float w2 = this.largura(lgCarta);
             final float w1 = this.tarja.getWidth();
             translate.setInterpolator(new Interpolator(){
@@ -396,16 +396,15 @@ public class ClasseMao {
                     return t;
                 }
             });
-            return translate;
-        }
-        else {
-            return null;
+            translate.setFillAfter(true);
+            translate.cancel();
+            tarja.setAnimation(translate);
         }
     }
 
-    public void tiraTarja() {
+    /*public void tiraTarja() {
         tarja.setVisibility(View.INVISIBLE);
-    }
+    }*/
 
     private float getNextX() {
         return this.posInitX + this.deltaX * this.cartas.size();
@@ -439,7 +438,8 @@ public class ClasseMao {
         float s = this.cartas.size();
         return (s - 1f) * this.deltaX + lgCarta;
     }
-/*
+
+    /*
     public void esvazia() {
         this.tiraTarja();
         for (int ct=cartas.size()-1;ct>=0;ct--) {
@@ -447,7 +447,8 @@ public class ClasseMao {
             this.cartas.remove(ct);
         }
     }
-*/
+    */
+
     boolean temJogoValido() {
         for (int np=1;np<=4;np++){
             ClasseMao mtmp = new ClasseMao(); //sub-mão temporária com cartas do mesmo naipe
@@ -480,5 +481,13 @@ public class ClasseMao {
             }
         }
         return false;
+    }
+
+    public void play() {
+        for (ClasseCarta ct:this.cartas) {
+            if (!ct.anim.getAnimations().isEmpty()) {
+                ct.play();
+            }
+        }
     }
 }

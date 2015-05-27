@@ -1,8 +1,8 @@
 package com.multigames.buracoaberto;
 
         import android.view.animation.Animation;
+        import android.view.animation.AnimationSet;
         import android.view.animation.Interpolator;
-        import android.view.animation.Transformation;
         import android.view.animation.TranslateAnimation;
         import android.view.animation.ScaleAnimation;
         import android.graphics.Bitmap;
@@ -14,7 +14,7 @@ package com.multigames.buracoaberto;
  * @author Leonardo Lara Rodrigues
  */
 public class ClasseCarta extends ImageView {
-    public final static int TEMPO = 1;
+    public final static long TEMPO = 1000L;
     public final static int JOG2 = 1, JOG3 = 2, JOG4 = 3;
     public int carta;
     public int naipe;
@@ -28,9 +28,16 @@ public class ClasseCarta extends ImageView {
     public boolean praCima;
     public int zOrder;
     public int descarte;
+    public AnimationSet anim;
 
     public ClasseCarta(Context context) {
         super(context);
+        anim = new AnimationSet(false);
+        praCima = false;
+        selecionada = false;
+        angulo = 0f;
+        posX = 0f;
+        posY = 0f;
     }
 
     public int ordemNaipe(){
@@ -75,9 +82,7 @@ public class ClasseCarta extends ImageView {
         return -1;
     }
 
-    public TranslateAnimation fxToggleSelect() {
-        float oldPosX = posX;
-        float oldPosY = posY;
+    public void fxToggleSelect() {
         this.selecionada = !this.selecionada;
         if (this.selecionada){
             posY = posY - (float)Math.rint(10.0 * Math.cos(Math.toRadians((float)this.angulo)));
@@ -86,20 +91,22 @@ public class ClasseCarta extends ImageView {
             posY = posY + (float)Math.rint(10.0 * Math.cos(Math.toRadians((float)this.angulo)));
             posX = posX - (float)Math.rint(10.0 * Math.sin(Math.toRadians((float)this.angulo)));
         }
-        TranslateAnimation translate = new TranslateAnimation(oldPosX,oldPosY,posX,posY);
-        return translate;
+        TranslateAnimation translate = new TranslateAnimation(this.getTranslationX(),this.getTranslationY(),posX,posY);
+        translate.setDuration(200L);
+        translate.setFillAfter(true);
+        translate.cancel();
+        this.anim.addAnimation(translate);
     }
 
-    public ScaleAnimation fxViraPraBaixo () {
+    /*public ScaleAnimation fxViraPraBaixo () {
         return fxViraPraBaixo(0L);
-    }
+    }*/
 
-    public ScaleAnimation fxViraPraBaixo (long t) {
+    public void fxViraPraBaixo (long t) {
         if (t==0L) t=TEMPO;
         if (this.praCima) {
-            Transformation tr = new Transformation();
-            ScaleAnimation timeline = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
-            timeline.setInterpolator(new Interpolator() {
+            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
+            viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
                     if ((v > 0.5f) && praCima) {
@@ -107,61 +114,75 @@ public class ClasseCarta extends ImageView {
                         praCima = false;
                     }
                     if (v < 0.5) return v * 2f;
-                    else return 2f - 2f * v;
+                    else return 2f - 2f * v; // rampa sobe e desce
                 }
             });
-            timeline.setDuration(t);
-            timeline.setAnimationListener(new Animation.AnimationListener() {
+            viraCarta.setDuration(t);
+            viraCarta.setAnimationListener(new Animation.AnimationListener() {
                 @Override
-                public void onAnimationStart(Animation animation) {}
+                public void onAnimationStart(Animation animation) {
+                }
+
                 @Override
                 public void onAnimationEnd(Animation animation) {
                     praCima = false;
+                    anim.getAnimations().clear();
                 }
+
                 @Override
-                public void onAnimationRepeat(Animation animation) {}
+                public void onAnimationRepeat(Animation animation) {
+                }
             });
-            return timeline;
-        }
-        else {
-            return null;
+            viraCarta.setFillAfter(false);
+            viraCarta.cancel();
+            this.anim.addAnimation(viraCarta);
         }
     }
 
-    public ScaleAnimation fxViraPraCima () {
-        return fxViraPraCima(0L);
+    public void fxViraPraCima () {
+        this.fxViraPraCima(0L);
     }
-    public ScaleAnimation fxViraPraCima (long t) {
+    public void fxViraPraCima (long t) {
         if (t==0) t=TEMPO;
         if (!this.praCima) {
-            Transformation tr = new Transformation();
-            ScaleAnimation timeline = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
-            timeline.setInterpolator(new Interpolator(){
+            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
+            viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
-                    if ((v>0.5f)&&praCima) {
+                    if ((v > 0.5f) && !praCima) {
                         setImageBitmap(frente);
                         praCima = false;
                     }
-                    if (v<0.5) return v * 2f; else return 2f - 2f * v;
+                    if (v < 0.5) return v * 2f;
+                    else return 2f - 2f * v;
                 }
             });
-            timeline.setDuration(t);
-            timeline.setAnimationListener(new Animation.AnimationListener() {
+            viraCarta.setDuration(t);
+            viraCarta.setAnimationListener(new Animation.AnimationListener() {
                 @Override
-                public void onAnimationStart(Animation animation) {}
+                public void onAnimationStart(Animation animation) {
+                }
+
                 @Override
                 public void onAnimationEnd(Animation animation) {
                     praCima = true;
+                    anim.getAnimations().clear();
                 }
+
                 @Override
-                public void onAnimationRepeat(Animation animation) {}
+                public void onAnimationRepeat(Animation animation) {
+                }
             });
-            return timeline;
+            viraCarta.setFillAfter(false);
+            viraCarta.cancel();
+            this.anim.addAnimation(viraCarta);
         }
-        else {
-            return null;
-        }
+    }
+
+    public void play() {
+        this.anim.cancel();
+        this.setAnimation(anim);
+        this.getAnimation().start();
     }
 }
 
