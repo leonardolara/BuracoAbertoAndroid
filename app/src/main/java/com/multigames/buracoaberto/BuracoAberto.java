@@ -206,8 +206,8 @@ public class BuracoAberto extends Activity {
                 for (int ct=AS;ct<=REI;ct++){
                     i = (ct-1) + NUMCARTAS * (naipe-1) + UMBARALHO * (cor-1);
                     baralho[i] = new ClasseCarta(getApplicationContext());
-                    baralho[i].setTranslationX((int) (Math.random() * (screenWidth() - larguraCarta())));
-                    baralho[i].setTranslationY((int) (Math.random() * (screenHeight() - alturaCarta())));
+                    //baralho[i].setTranslationX((int) (Math.random() * (screenWidth() - larguraCarta())));
+                    //baralho[i].setTranslationY((int) (Math.random() * (screenHeight() - alturaCarta())));
                     //ScaleAnimation anim = new ScaleAnimation(0.8f,1.2f,0.8f,1.2f,(float)Math.rint(baralho[i].getTranslationX()+larguraCarta()/2f),(float)Math.rint(baralho[i].getTranslationY()+alturaCarta()/2f));
                     //anim.setDuration(1000L);
                     //anim.setRepeatMode(Animation.REVERSE);
@@ -244,46 +244,26 @@ public class BuracoAberto extends Activity {
 
     }
 
-    private void play(final int k){
-        TranslateAnimation pausa = new TranslateAnimation(0f,0f,0f,0f);
-        pausa.cancel();
-        pausa.setDuration(5000L);
-        pausa.setFillAfter(true);
-        pausa.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
+    private void play(){
+        for(int k=0;k<MAXCARTAS;k++) {
+            mao[MONTE].cartas.get(k).posX = (float) Math.rint(mao[MONTE].posInitX + mao[MONTE].deltaX * (float) k);
+            mao[MONTE].cartas.get(k).posY = (float) Math.rint(mao[MONTE].posInitY + mao[MONTE].deltaY * (float) k);
+            moveCarta(mao[MONTE].cartas.get(k), true, 200L, true);
+            if (DEBUGMODE) {
+                mao[MONTE].cartas.get(k).fxViraPraCima();
             }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                mao[MONTE].cartas.get(k).posX = (float) Math.rint(mao[MONTE].posInitX + mao[MONTE].deltaX * (float) k);
-                mao[MONTE].cartas.get(k).posY = (float) Math.rint(mao[MONTE].posInitY + mao[MONTE].deltaY * (float) k);
-                moveCarta(mao[MONTE].cartas.get(k), true, 200L, true);
-                if (DEBUGMODE) {
-                    mao[MONTE].cartas.get(k).fxViraPraCima();
-                }
-                mao[MONTE].cartas.get(k).play();
-                if (k < 103) {
-                    play(k + 1);
-                } else {
-                    fxDistribui(20L);
-                    mao[JOG1].play();
+            mao[MONTE].cartas.get(k).play();
+        }
+        fxDistribui(20L);
+                    /*mao[JOG1].play();
                     mao[JOG2].play();
                     mao[JOG3].play();
                     mao[JOG4].play();
                     mao[MORTO1].play();
-                    mao[MORTO2].play();
-                    transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO);
-                    mao[LIXO].play();
-                    vez = 0f;
-                }
-            }
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
-        lblMesa1.setAnimation(pausa);
-        lblMesa1.getAnimation().start();
+                    mao[MORTO2].play();*/
+        transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO);
+        mao[LIXO].play();
+        vez = 0f;
     }
 
     private void jogo () {
@@ -298,9 +278,9 @@ public class BuracoAberto extends Activity {
         }
         lblMesa1.bringToFront();
         lblMesa2.bringToFront();
-        updateZOrder();
+        //updateZOrder();
 
-        play(0); //põe o monte na mesa, dsitribui as cartas e joga a primeira no lixo.
+        play(); //põe o monte na mesa, dsitribui as cartas e joga a primeira no lixo.
 
         masterListener = new Timer();
         masterListener.schedule(new TimerTask() {
@@ -518,13 +498,16 @@ public class BuracoAberto extends Activity {
     public void moveCarta(final ClasseCarta ct, boolean movimento, long t, final boolean toFront) {
         if (t==0L) t=TEMPO;
         if (!movimento) t=1L;
-        TranslateAnimation translate = new TranslateAnimation(ct.getTranslationX(),ct.getTranslationY(),ct.posX,ct.posY);
-        translate.setDuration(t);
-        translate.setFillAfter(true);
-        RotateAnimation rotate = new RotateAnimation (ct.getRotation(),ct.angulo);
-        rotate.setDuration(t);
-        rotate.setFillAfter(true);
-        rotate.setInterpolator(new android.view.animation.Interpolator() {
+        //TranslateAnimation translate = new TranslateAnimation(ct.getTranslationX(),ct.posX,ct.getTranslationY(),ct.posY);
+        ct.setTranslationX(ct.posX);
+        ct.setTranslationY(ct.posY);
+        //translate.setDuration(t);
+        //translate.setFillAfter(true);
+        //RotateAnimation rotate = new RotateAnimation (ct.getRotation(),ct.angulo,ct.posX+larguraCarta()/2f,ct.posY+alturaCarta()/2f);
+        ct.setRotation(ct.angulo);
+        //rotate.setDuration(t);
+        //rotate.setFillAfter(true);
+        /*rotate.setInterpolator(new android.view.animation.Interpolator() {
             @Override
             public float getInterpolation(float v) {
                 if (v > 0.5) {
@@ -541,9 +524,9 @@ public class BuracoAberto extends Activity {
                 }
                 return v;
             }
-        });
-        ct.anim.addAnimation(translate);
-        ct.anim.addAnimation(rotate);
+        });*/
+        //ct.anim.addAnimation(translate);
+        //ct.anim.addAnimation(rotate);
     }
     public void moveCarta(ClasseCarta ct, boolean movimento){
         moveCarta(ct, movimento, 0L, false);

@@ -92,7 +92,7 @@ public class ClasseCarta extends ImageView {
             posY = posY + (float)Math.rint(10.0 * Math.cos(Math.toRadians((float)this.angulo)));
             posX = posX - (float)Math.rint(10.0 * Math.sin(Math.toRadians((float)this.angulo)));
         }
-        TranslateAnimation translate = new TranslateAnimation(this.getTranslationX(),this.getTranslationY(),posX,posY);
+        TranslateAnimation translate = new TranslateAnimation(this.getTranslationX(),posX,this.getTranslationY(),posY);
         translate.setDuration(200L);
         translate.setFillAfter(true);
         translate.cancel();
@@ -106,7 +106,7 @@ public class ClasseCarta extends ImageView {
     public void fxViraPraBaixo (long t) {
         if (t==0L) t=TEMPO;
         if (this.praCima) {
-            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
+            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,0.0f,1.0f,1.0f);
             viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
@@ -127,7 +127,7 @@ public class ClasseCarta extends ImageView {
                 @Override
                 public void onAnimationEnd(Animation animation) {
                     praCima = false;
-                    anim.getAnimations().clear();
+                    //anim.getAnimations().clear();
                 }
 
                 @Override
@@ -146,7 +146,7 @@ public class ClasseCarta extends ImageView {
     public void fxViraPraCima (long t) {
         if (t==0) t=TEMPO;
         if (!this.praCima) {
-            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,1.0f,0.0f,1.0f);
+            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,0.0f,1.0f,1.0f);
             viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
@@ -167,7 +167,7 @@ public class ClasseCarta extends ImageView {
                 @Override
                 public void onAnimationEnd(Animation animation) {
                     praCima = true;
-                    anim.getAnimations().clear();
+                    //anim.getAnimations().clear();
                 }
 
                 @Override
@@ -182,10 +182,10 @@ public class ClasseCarta extends ImageView {
 
     public void play() {
         if (!this.anim.getAnimations().isEmpty()) {
-            this.anim.cancel();
+            //this.anim.cancel();
             this.anim.setDuration(TEMPO);
             this.setAnimation(anim);
-            this.getAnimation().start();
+            this.getAnimation().startNow();
         }
     }
 }
