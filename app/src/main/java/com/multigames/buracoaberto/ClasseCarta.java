@@ -1,13 +1,18 @@
 package com.multigames.buracoaberto;
 
-        import android.view.animation.Animation;
-        import android.view.animation.AnimationSet;
+        import android.animation.Animator;
+        import android.animation.AnimatorListenerAdapter;
+        import android.animation.AnimatorSet;
+        import android.animation.Keyframe;
+        import android.animation.ObjectAnimator;
+        import android.animation.PropertyValuesHolder;
+        import android.animation.ValueAnimator;
         import android.view.animation.Interpolator;
-        import android.view.animation.TranslateAnimation;
-        import android.view.animation.ScaleAnimation;
         import android.graphics.Bitmap;
         import android.content.Context;
         import android.widget.ImageView;
+
+        import java.util.ArrayList;
 
 /**
  *
@@ -28,12 +33,9 @@ public class ClasseCarta extends ImageView {
     public boolean praCima;
     public int zOrder;
     public int descarte;
-    public AnimationSet anim;
 
     public ClasseCarta(Context context) {
         super(context);
-        anim = new AnimationSet(false);
-        anim.setFillAfter(true);
         praCima = false;
         selecionada = false;
         angulo = 0f;
@@ -83,30 +85,32 @@ public class ClasseCarta extends ImageView {
         return -1;
     }
 
-    public void fxToggleSelect() {
+    public AnimatorSet fxToggleSelect(float factor) {
         this.selecionada = !this.selecionada;
         if (this.selecionada){
-            posY = posY - (float)Math.rint(10.0 * Math.cos(Math.toRadians((float)this.angulo)));
-            posX = posX + (float)Math.rint(10.0 * Math.sin(Math.toRadians((float)this.angulo)));
+            posY = posY - (float)Math.rint(10.0 * factor * Math.cos(Math.toRadians((float)this.angulo)));
+            posX = posX + (float)Math.rint(10.0 * factor * Math.sin(Math.toRadians((float)this.angulo)));
         } else {
-            posY = posY + (float)Math.rint(10.0 * Math.cos(Math.toRadians((float)this.angulo)));
-            posX = posX - (float)Math.rint(10.0 * Math.sin(Math.toRadians((float)this.angulo)));
+            posY = posY + (float)Math.rint(10.0 * factor * Math.cos(Math.toRadians((float)this.angulo)));
+            posX = posX - (float)Math.rint(10.0 * factor * Math.sin(Math.toRadians((float)this.angulo)));
         }
-        TranslateAnimation translate = new TranslateAnimation(this.getTranslationX(),posX,this.getTranslationY(),posY);
+        ValueAnimator translate = ObjectAnimator.ofFloat(this,"y",this.getY(),posY);
         translate.setDuration(200L);
-        translate.setFillAfter(true);
-        translate.cancel();
-        this.anim.addAnimation(translate);
+        AnimatorSet aSet = new AnimatorSet();
+        aSet.playTogether(translate);
+        return aSet;
     }
 
-    /*public ScaleAnimation fxViraPraBaixo () {
-        return fxViraPraBaixo(0L);
-    }*/
-
-    public void fxViraPraBaixo (long t) {
+    public AnimatorSet fxViraPraBaixo (long t) {
+        ArrayList<Animator> animators = new ArrayList<Animator>();
         if (t==0L) t=TEMPO;
         if (this.praCima) {
-            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,0.0f,1.0f,1.0f);
+            Keyframe kf0 = Keyframe.ofFloat(0f, 1f);
+            Keyframe kf1 = Keyframe.ofFloat(.5f, 0f);
+            Keyframe kf2 = Keyframe.ofFloat(1f, 1f);
+            PropertyValuesHolder cardFlip = PropertyValuesHolder.ofKeyframe("scaleX", kf0, kf1, kf2);
+            ObjectAnimator viraCarta = ObjectAnimator.ofPropertyValuesHolder(this, cardFlip);
+            viraCarta.setDuration(t);
             viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
@@ -114,79 +118,44 @@ public class ClasseCarta extends ImageView {
                         setImageBitmap(verso);
                         praCima = false;
                     }
-                    if (v < 0.5) return v * 2f;
-                    else return 2f - 2f * v; // rampa sobe e desce
+                    return v;
                 }
             });
-            viraCarta.setDuration(t);
-            viraCarta.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    praCima = false;
-                    //anim.getAnimations().clear();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });
-            viraCarta.setFillAfter(true);
-            viraCarta.cancel();
-            this.anim.addAnimation(viraCarta);
+            animators.add(viraCarta);
         }
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(animators);
+        return animatorSet;
     }
 
-    public void fxViraPraCima () {
-        this.fxViraPraCima(0L);
-    }
-    public void fxViraPraCima (long t) {
+    /*public AnimatorSet fxViraPraCima () {
+         return fxViraPraCima(0L);
+    }*/
+    public AnimatorSet fxViraPraCima (long t) {
+        ArrayList<Animator> animators = new ArrayList<Animator>();
         if (t==0) t=TEMPO;
         if (!this.praCima) {
-            ScaleAnimation viraCarta = new ScaleAnimation(1.0f,0.0f,1.0f,1.0f);
+            Keyframe kf0 = Keyframe.ofFloat(0f, 1f);
+            Keyframe kf1 = Keyframe.ofFloat(.5f, 0f);
+            Keyframe kf2 = Keyframe.ofFloat(1f, 1f);
+            PropertyValuesHolder cardFlip = PropertyValuesHolder.ofKeyframe("scaleX", kf0, kf1, kf2);
+            ObjectAnimator viraCarta = ObjectAnimator.ofPropertyValuesHolder(this, cardFlip);
+            viraCarta.setDuration(t);
             viraCarta.setInterpolator(new Interpolator() {
                 @Override
                 public float getInterpolation(float v) {
                     if ((v > 0.5f) && !praCima) {
                         setImageBitmap(frente);
-                        praCima = false;
+                        praCima = true;
                     }
-                    if (v < 0.5) return v * 2f;
-                    else return 2f - 2f * v;
+                    return v;
                 }
             });
-            viraCarta.setDuration(t);
-            viraCarta.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    praCima = true;
-                    //anim.getAnimations().clear();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });
-            viraCarta.setFillAfter(true);
-            viraCarta.cancel();
-            this.anim.addAnimation(viraCarta);
+            animators.add(viraCarta);
         }
-    }
-
-    public void play() {
-        if (!this.anim.getAnimations().isEmpty()) {
-            //this.anim.cancel();
-            this.anim.setDuration(TEMPO);
-            this.setAnimation(anim);
-            this.getAnimation().startNow();
-        }
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(animators);
+        return animatorSet;
     }
 }
 

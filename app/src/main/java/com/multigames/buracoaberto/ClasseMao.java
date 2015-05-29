@@ -12,11 +12,13 @@ package com.multigames.buracoaberto;
 import static com.multigames.buracoaberto.ClasseCarta.TEMPO;
 import java.util.ArrayList;
 import java.util.List;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.view.View;
-import android.view.animation.AnimationSet;
 import android.view.animation.Interpolator;
-import android.view.animation.ScaleAnimation;
-import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.graphics.Bitmap;
 /**
@@ -34,10 +36,13 @@ public class ClasseMao {
     public float kkk;
     public Bitmap limpa;
     public Bitmap suja;
+    private Context mContext;
 
-    public ClasseMao (){
-        /*
-        this.tarja = new ImageView();
+    public ClasseMao (Context context) {
+        mContext = context;
+        suja = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cuja), 70, 100, true);
+        limpa = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cimpa), 70, 100, true);
+        this.tarja = new ImageView(mContext);
         this.tarja.setVisibility(View.VISIBLE);
         this.tarja.setImageBitmap(limpa);
         this.tarja.setTranslationX(0.0f);
@@ -45,7 +50,6 @@ public class ClasseMao {
         this.tarja.setClickable(false);
         this.tarja.setMaxWidth(1);
         this.tarja.setMaxHeight(20);
-        */
         this.cartas = new ArrayList<ClasseCarta>();
         this.orientation = HORIZONTAL;
         kkk = 0.0f;
@@ -177,13 +181,13 @@ public class ClasseMao {
     public ClasseOrdem jogoValido() {
         ClasseOrdem falso = new ClasseOrdem();
         falso.valido = false;
-        falso.ordem = new ClasseMao();
+        falso.ordem = new ClasseMao(mContext);
         ClasseOrdem valido = new ClasseOrdem();
         valido.valido = true;
-        valido.ordem = new ClasseMao();
+        valido.ordem = new ClasseMao(mContext);
 
         for (ClasseCarta k : this.cartas) {
-            ClasseCarta ct = new ClasseCarta(null);
+            ClasseCarta ct = new ClasseCarta(mContext);
             ct.carta = k.carta;
             ct.naipe = k.naipe;
             ct.cor = k.cor;
@@ -351,7 +355,7 @@ public class ClasseMao {
         return k;
     }
 
-    public void fxMostraTarja(String tipo, float lgCarta) {
+    public AnimatorSet fxMostraTarja(String tipo, float lgCarta) {
         if (null != tipo) switch (tipo.charAt(0)) {
             case 'L':
                 if (!this.tarja.equals(this.limpa)) this.tarja.setImageBitmap(this.limpa);
@@ -360,44 +364,38 @@ public class ClasseMao {
                 if (!this.tarja.equals(this.suja)) this.tarja.setImageBitmap(this.suja);
                 break;
         }
-        tarja.setTranslationX(posInitX);
-        tarja.setTranslationY(posInitY + 100f * 0.6f);
+        tarja.setX(posInitX);
+        tarja.setY(posInitY + 100f * 0.6f);
         tarja.setMaxWidth(1);
         tarja.setVisibility(View.VISIBLE);
         tarja.bringToFront();
         tarja.setClickable(false);
-        final float width = this.largura(lgCarta);
-        ScaleAnimation st = new ScaleAnimation(1f,1f,1f,1f); //dummy
+        final int width = (int)this.largura(lgCarta);
+        ValueAnimator st = ObjectAnimator.ofInt(this.tarja,"maxWidth",width);
         st.setDuration(TEMPO);
-        st.setInterpolator(new Interpolator() {
-            @Override
-            public float getInterpolation(float v) {
-                tarja.setMaxWidth((int) Math.max(width * v, 1.0));
-                return v;
-            }
-        });
-        st.setFillAfter(true);
-        st.cancel();
-        tarja.setAnimation(st);
+        AnimatorSet aSet = new AnimatorSet();
+        aSet.getChildAnimations().add(st);
+        return aSet;
     }
 
-    public void fxMoveTarja(float lgCarta) {
-        if (this.tarja.getVisibility()==View.VISIBLE){
-            TranslateAnimation translate= new TranslateAnimation(this.posInitX,this.posInitY,this.posInitX,this.posInitY+0.6f*lgCarta/0.7f);
-            translate.setDuration(TEMPO);
-            final float w2 = this.largura(lgCarta);
-            final float w1 = this.tarja.getWidth();
-            translate.setInterpolator(new Interpolator(){
-                @Override
-                public float getInterpolation (float t) {
-                    tarja.setMaxWidth((int)Math.max((w2-w1)*t+w1,1f));
-                    return t;
-                }
-            });
-            translate.setFillAfter(true);
-            translate.cancel();
-            tarja.setAnimation(translate);
-        }
+    public AnimatorSet fxMoveTarja(float lgCarta) {
+        ValueAnimator translateX = ObjectAnimator.ofFloat(this.tarja, "x", this.posInitX);
+        ValueAnimator translateY = ObjectAnimator.ofFloat(this.tarja, "y", this.posInitY + 0.6f * lgCarta / 0.7f);
+        translateX.setDuration(TEMPO);
+        translateY.setDuration(TEMPO);
+        final float w2 = this.largura(lgCarta);
+        final float w1 = this.tarja.getWidth();
+        translateX.setInterpolator(new Interpolator() {
+            @Override
+            public float getInterpolation(float t) {
+                tarja.setMaxWidth((int) Math.max((w2 - w1) * t + w1, 1f));
+                return t;
+            }
+        });
+        AnimatorSet aSet = new AnimatorSet();
+        aSet.getChildAnimations().add(translateX);
+        aSet.getChildAnimations().add(translateY);
+        return aSet;
     }
 
     /*public void tiraTarja() {
@@ -449,14 +447,14 @@ public class ClasseMao {
 
     boolean temJogoValido() {
         for (int np=1;np<=4;np++){
-            ClasseMao mtmp = new ClasseMao(); //sub-mão temporária com cartas do mesmo naipe
+            ClasseMao mtmp = new ClasseMao(mContext); //sub-mão temporária com cartas do mesmo naipe
             for (ClasseCarta c:this.cartas) if (c.naipe==np) mtmp.cartas.add(c);
             if (mtmp.cartas.size()>=3){ //se não tem nem 3 cartas desse naipe, não precisa tentar descer
                 //System.out.println("tem pelo menos 3 cartas do mesmo naipe");
                 for (int k1=0;k1<mtmp.cartas.size()-2;k1++){
                     for (int k2=k1+1;k2<mtmp.cartas.size()-1;k2++){
                         for (int k3=k2+1;k3<mtmp.cartas.size();k3++){
-                            ClasseMao mao_temp = new ClasseMao(); //sub-mão de mtmp com combinação de 3 cartas
+                            ClasseMao mao_temp = new ClasseMao(mContext); //sub-mão de mtmp com combinação de 3 cartas
                             mao_temp.cartas.add(mtmp.cartas.get(k1));
                             mao_temp.cartas.add(mtmp.cartas.get(k2));
                             mao_temp.cartas.add(mtmp.cartas.get(k3));
@@ -479,13 +477,5 @@ public class ClasseMao {
             }
         }
         return false;
-    }
-
-    public void play() {
-        for (ClasseCarta ct:this.cartas) {
-            if (!ct.anim.getAnimations().isEmpty()) {
-                ct.play();
-            }
-        }
     }
 }
