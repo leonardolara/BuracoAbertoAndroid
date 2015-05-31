@@ -657,7 +657,7 @@ public class BuracoAberto extends Activity {
                         } else {
                             mao[origem].cartas.get(k).posX = (float)Math.rint(screenCenterX() + calculaX(k,tamanho));
                             mao[origem].cartas.get(k).posY = (float)Math.rint(mao[origem].posInitY - calculaY(k,tamanho));
-                            mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180/(float)Math.PI;
+                            mao[origem].cartas.get(k).angulo = calculaAngulo(k,tamanho)*180f/(float)Math.PI;
                         }
                     }
                     animation.add(moveCarta(mao[origem].cartas.get(k), true, tempo));
