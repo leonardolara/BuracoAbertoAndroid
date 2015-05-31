@@ -47,9 +47,9 @@ public class ClasseMesa {
                 || this.maos.isEmpty()) {
             return pos;
         }
-        float espacoH = lgCarta * (2.0f/7.0f); //espaço horizontal entre os jogos da mesa
-        float altura = lgCarta * (10.0f/7.0f);
-        float espacoV = altura/10.0f; //espaço vertical entre os jogos da mesa
+        float espacoH = lgCarta * (2f/7f); //espaço horizontal entre os jogos da mesa
+        float altura = lgCarta * (10f/7f);
+        float espacoV = altura / 10f; //espaço vertical entre os jogos da mesa
         pos = new PointF(
                 this.maos.get(mao_mesa-1).posInitX
                         + this.maos.get(mao_mesa-1).largura(lgCarta)

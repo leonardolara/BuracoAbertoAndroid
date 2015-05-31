@@ -12,7 +12,7 @@ import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -91,8 +91,8 @@ public class BuracoAberto extends Activity {
     public ClasseMesa[] mesa;
 
     public boolean ja_comprou = false;
-    public float vez = -1;
-    public float oldvez = -1;
+    public int vez = -1;
+    public int oldvez = -1;
     public boolean jogo_acabou = false;
 
     public String[] naipes = {"espadas", "copas", "paus", "ouros"};
@@ -128,17 +128,7 @@ public class BuracoAberto extends Activity {
         int h = getWindowManager().getDefaultDisplay().getHeight();
         root.layout(0, 0, w, h);
         root.bringToFront();
-        float ratio = (float) w / (float) h;
-
-        if (ratio < 0.75f) {
-            //mantem largura
-            factor = (float)w/240f;
-        }
-        else {
-            //mantem altura
-            factor = (float)h/320f;
-        }
-
+        factor = getFactor(w,h);
         mao = new ClasseMao[8];
         mesa = new ClasseMesa[2];
         lblMesa1 = new TextView(mContext);
@@ -150,9 +140,20 @@ public class BuracoAberto extends Activity {
         inicializaCartas();
         inicializaControles();
         jogo_acabou = false;
-
         setContentView(root,prm);
         jogo();
+    }
+
+    private float getFactor (float w, float h) {
+        float ratio = (float) w / (float) h;
+        if (ratio < 0.75f) {
+            //mantem largura
+            factor = (float) w / 240f;
+        } else {
+            //mantem altura
+            factor = (float) h / 320f;
+        }
+        return factor;
     }
 
     private float screenWidth(){
@@ -183,12 +184,12 @@ public class BuracoAberto extends Activity {
             mao[JOG2].setPosInit(243f*factor, 7f*factor, 0f*factor, 8f*factor);
             mao[JOG3].setPosInit(10f*factor, -45f*factor, 8f*factor, 0f*factor);
             mao[JOG4].setPosInit(-36f*factor, 10f*factor, 0f*factor, 8f*factor);
-            mao[MONTE].setPosInit(30f*factor, 120f*factor, 1f*factor, 0f*factor);
-            mao[LIXO].setPosInit(80f*factor, 120f*factor, 8f*factor, 0f*factor);
+            mao[MONTE].setPosInit(30f*factor, 120f*factor, 0f*factor, 0f*factor);
+            mao[LIXO].setPosInit(80f*factor, 120f*factor, 6f*factor, 0f*factor);
             mao[MORTO1].setPosInit(-30f*factor, -40f*factor, 0f*factor, 0f*factor);
             mao[MORTO2].setPosInit(-25f*factor, -45f*factor, 0f*factor, 0f*factor);
-            mesa[0].setPosInit(10f*factor, 175f*factor, 4f*factor, 0f*factor);
-            mesa[1].setPosInit(10f*factor, 10f*factor, 4f*factor, 0f*factor);
+            mesa[0].setPosInit(10f*factor, 175f*factor, 6f*factor, 0f*factor);
+            mesa[1].setPosInit(10f*factor, 10f*factor, 6f*factor, 0f*factor);
             mesa[0].posMax = 229f*factor;
             mesa[1].posMax = 229f*factor;
         } else {
@@ -206,7 +207,7 @@ public class BuracoAberto extends Activity {
             mesa[1].posMax = 1083f;
         }
         lixo.set((int) mao[LIXO].posInitX, (int) mao[LIXO].posInitY, (int) mesa[0].posMax, (int) (mao[LIXO].posInitY + alturaCarta()));
-        mesadejogos.set((int)mesa[0].posInitX,(int)mesa[0].posInitY,(int)mesa[0].posMax,(int)mao[JOG1].posInitY-2);
+        mesadejogos.set((int) mesa[0].posInitX, (int) mesa[0].posInitY, (int) mesa[0].posMax, (int) mao[JOG1].posInitY - 2);
 
         for (int cor=VERMELHO;cor<=AZUL;cor++){
             for (int naipe=ESPADAS;naipe<=OUROS;naipe++){
@@ -220,7 +221,7 @@ public class BuracoAberto extends Activity {
                     baralho[i].naipe = naipe;
                     baralho[i].cor = cor;
                     baralho[i].selecionada = false;
-                    baralho[i].zOrder = i+2;
+                    baralho[i].zOrder = i;
                     baralho[i].frente = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(),nomes[i%52]),70,100,true);
                     if (cor==VERMELHO) baralho[i].verso = vermelho;
                     else baralho[i].verso = azul;
@@ -238,7 +239,6 @@ public class BuracoAberto extends Activity {
         for (i=0;i<MAXCARTAS;i++){
             mao[MONTE].cartas.add(baralho[i]);
         }
-
     }
 
     private void play(){
@@ -249,13 +249,22 @@ public class BuracoAberto extends Activity {
             mao[MONTE].cartas.get(k).posY = (float) Math.rint(mao[MONTE].posInitY + mao[MONTE].deltaY * (float) k);
             seq.add(moveCarta(mao[MONTE].cartas.get(k), true, 1L, true));
         }
-        seq.add(fxDistribui(150L));
-        seq.add(transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO));
         pt.playSequentially(seq);
         pt.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator pt) {
-                vez = 0f;
+                ArrayList<Animator> seq2 = new ArrayList<Animator>();
+                seq2.add(fxDistribui(150L));
+                seq2.add(transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, LIXO));
+                AnimatorSet pt2 = new AnimatorSet();
+                pt2.playSequentially(seq2);
+                pt2.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        vez = 0;
+                    }
+                });
+                pt2.start();
             }
         });
         pt.start();
@@ -267,7 +276,7 @@ public class BuracoAberto extends Activity {
         corta();
         embaralha();
 
-        for (int k=mao[MONTE].cartas.size()-1;k>=0;k--) {
+        for (int k = 0; k < mao[MONTE].cartas.size(); k++) {
             mao[MONTE].cartas.get(k).bringToFront();
         }
         lblMesa1.bringToFront();
@@ -280,76 +289,55 @@ public class BuracoAberto extends Activity {
         masterListener.schedule(new TimerTask() {
             @Override
             public void run() {
-                if ((vez == -1f) && (oldvez == -1f) && jogo_acabou) {
-                    terminaJogo();
-                } else if (((oldvez == -1f) || (oldvez == 3.3f)) && (vez == 0f)) {
-                    oldvez = 0f;
-                } else if (((oldvez == 0f)||((int)Math.round(10*oldvez)-10*(int)oldvez == 3)) && ((int)Math.round(10*vez)-10*(int)vez == 1)) {
-                    oldvez = vez;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            AnimatorSet animation = botCompra((int) vez);
-                            animation.addListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    vez += 0.1f;
-                                }
-                            });
-                            animation.start(); //anima as cartas da mão
-                        }
-                    });
-                } else if (((int)Math.round(10*oldvez)-10*(int)oldvez == 1) && ((int)Math.round(10 * vez)-10*(int)vez == 2)) {
-                    oldvez = vez;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            AnimatorSet descida = botDesce((int) vez);
-                            if (!descida.getChildAnimations().isEmpty()) {
-                                descida.addListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        vez += 0.1f;
-                                    }
-                                });
-                                descida.start();
-                            }
-                            else {
-                                vez += 0.1f;
-                            }
-                        }
-                    });
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        maestro();
+                    }
+                });
+            }
+        }, 0L, 1000L);
+    }
 
-
-                } else if (((int)Math.round(10*oldvez)-10*(int)oldvez == 2) && ((int)Math.round(10*vez)-10*(int)vez == 3)) {
-                    oldvez = vez;
-                    runOnUiThread(new Runnable() {
+    private void maestro() {
+        if ((vez == -1) && (oldvez == -1) && jogo_acabou) {
+            terminaJogo();
+        } else if (((oldvez == -1) || (oldvez == 3)) && (vez == 0)) {
+            oldvez = 0;
+        } else if (vez - oldvez == 1) {
+            oldvez = vez;
+            //verifica se acabaram as cartas do monte
+            //se acabaram, pega do morto
+            //se não tem mais morto, termina o jogo
+            AnimatorSet compra = botCompra(vez);
+            compra.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    AnimatorSet descida = botDesce(vez);
+                    descida.addListener(new AnimatorListenerAdapter() {
                         @Override
-                        public void run() {
-                            AnimatorSet descarte = botDescarta((int) vez);
+                        public void onAnimationEnd(Animator animation) {
+                            AnimatorSet descarte = botDescarta(vez);
                             descarte.addListener(new AnimatorListenerAdapter() {
                                 @Override
                                 public void onAnimationEnd(Animator animation) {
-                                    vez = (int) vez + 1.1f;
-                                    if (vez > 3.3f) vez = 0f;
-                                    AnimatorSet morto = verificaSeAcabou((int) vez);
-                                    if (!morto.getChildAnimations().isEmpty()) {
-                                        morto.start();
-                                    }
+                                    vez++;
+                                    if (vez > 3) vez = 0;
                                 }
                             });
                             descarte.start();
                         }
                     });
+                    descida.start();
                 }
-            }
-        }, 0L, 1000L);
-        //cria um "listener" a cada 1.0s para sincronizar o jogo com as animações
+            });
+            compra.start();
+        }
     }
 
     private void mesadejogos_click() {
         AnimatorSet t;
-        if (vez==0f){
+        if (vez==0){
             t = desceSelecionadas(JOG1, -1);
             if (t!=null) t.start();
         }
@@ -359,7 +347,7 @@ public class BuracoAberto extends Activity {
     }
 
     private void lixo_click(){
-        if (vez != 0f) return;
+        if (vez != 0) return;
         if (!ja_comprou){
             ja_comprou = true;
             if (mao[LIXO].cartas.size() == 1){ // se só tem uma carta sozinha, memoriza-a, não pode ser o descarte
@@ -379,7 +367,7 @@ public class BuracoAberto extends Activity {
     }
 
     private void carta_click(View clickedView){
-        if (vez!=0f) return; //não está na sua vez
+        if (vez!=0) return; //não está na sua vez
         int k, iCt=-1, iMao=-1;
 
         ClasseCarta ct = (ClasseCarta)clickedView;
@@ -447,10 +435,14 @@ public class BuracoAberto extends Activity {
         }
         else if (iMao>=100){
             AnimatorSet descida = desceSelecionadas(JOG1,iMao-100);
-            if (!descida.getChildAnimations().isEmpty()) {
+            if (descida != null) {
                 descida.start();
             } else {
-                if (jogo_acabou) terminaJogo();
+                for (ClasseCarta crt:mao[JOG1].cartas) {
+                    if (crt.selecionada) {
+                        crt.fxToggleSelect(factor).start();
+                    }
+                }
             }
         }
     }
@@ -464,7 +456,7 @@ public class BuracoAberto extends Activity {
         translateY.setDuration(t);
         ValueAnimator rotateZ = ObjectAnimator.ofFloat(ct,"rotation",ct.angulo);
         rotateZ.setDuration(t);
-        translateX.setInterpolator(new DecelerateInterpolator() {
+        rotateZ.setInterpolator(new Interpolator() {
             @Override
             public float getInterpolation(float v) {
                 if (v > 0.5) {
@@ -483,7 +475,7 @@ public class BuracoAberto extends Activity {
             }
         });
         AnimatorSet aSet = new AnimatorSet();
-        aSet.playTogether(translateX,translateY,rotateZ);
+        aSet.playTogether(translateX, translateY, rotateZ);
         return aSet;
     }
     public AnimatorSet moveCarta(ClasseCarta ct, boolean movimento){
@@ -678,7 +670,7 @@ public class BuracoAberto extends Activity {
                  finalAnimation.addListener(new AnimatorListenerAdapter() {
                      @Override
                      public void onAnimationEnd(Animator finalAnimation) {
-                         vez = 1.1f;
+                         vez = 1;
                      }
                  });
             }
@@ -755,7 +747,7 @@ public class BuracoAberto extends Activity {
 
             /*********MOVE A CARTA E AS CARTAS DA MESA PRA ABRIR ESPAÇO********/
             pos = mesa[ms].posMao(mesa[ms].maos.indexOf(maoDestino),larguraCarta());
-            maoDestino.setPosInit(pos.x, pos.y, 10f, 0f);
+            maoDestino.setPosInit(pos.x, pos.y, mesa[ms].deltaX, 0f);
             for (int k=0;k<maoDestino.cartas.size();k++) {
                 //Define a posição das cartas do jogo para abrir espaço para a carta que vai entrar
                 maoDestino.cartas.get(k).posX = (float)Math.rint(maoDestino.posInitX + maoDestino.deltaX * k);
@@ -767,7 +759,7 @@ public class BuracoAberto extends Activity {
             if ((mao_mesa + 1) < mesa[ms].maos.size()){
                 for (int mm=mao_mesa+1;mm<mesa[ms].maos.size();mm++){
                     pos = mesa[ms].posMao(mm,larguraCarta());
-                    mesa[ms].maos.get(mm).setPosInit(pos.x, pos.y, smallRes?5:10, 0);
+                    mesa[ms].maos.get(mm).setPosInit(pos.x, pos.y, mesa[ms].deltaX, 0f);
                     for (int crt=0; crt < mesa[ms].maos.get(mm).cartas.size(); crt++) {
                         mesa[ms].maos.get(mm).cartas.get(crt).posX = (float)Math.rint(mesa[ms].maos.get(mm).posInitX + mesa[ms].maos.get(mm).deltaX * crt);
                         mesa[ms].maos.get(mm).cartas.get(crt).posY = (float)Math.rint(mesa[ms].maos.get(mm).posInitY + mesa[ms].maos.get(mm).deltaY * crt);
@@ -917,6 +909,7 @@ public class BuracoAberto extends Activity {
         int ms;
         boolean serveProBot = false;
         AnimatorSet aSet = new AnimatorSet();
+        ArrayList<Animator> animators = new ArrayList<Animator>();
         if (jog==JOG3) ms=0; else ms=1;
         botPegouDoLixo.carta = 0;
         botPegouDoLixo.naipe = 0;
@@ -950,12 +943,13 @@ public class BuracoAberto extends Activity {
                 botPegouDoLixo.naipe = mao[LIXO].cartas.get(0).naipe;
             }
             while (!mao[LIXO].cartas.isEmpty()) {
-                aSet.getChildAnimations().add(transfereCarta(LIXO, 0, jog));
+                animators.add(transfereCarta(LIXO, 0, jog));
             }
         }
         else {
-            aSet.getChildAnimations().add(transfereCarta(MONTE, mao[MONTE].cartas.size()-1, jog));
+            animators.add(transfereCarta(MONTE, mao[MONTE].cartas.size() - 1, jog));
         }
+        aSet.playTogether(animators);
         return aSet;
     }
 
@@ -972,9 +966,9 @@ public class BuracoAberto extends Activity {
         ClasseMao mao_temp, mtmp;
         boolean serviu, fazdenovo = true, podedescer;
         AnimatorSet desceu;
-        AnimatorSet descida = new AnimatorSet();
+        AnimatorSet aSet = new AnimatorSet();
         int ms, np;
-
+        ArrayList<Animator> animators = new ArrayList<Animator>();
         if (jog==JOG3) ms=0;
         else ms=1;
 
@@ -1005,8 +999,8 @@ public class BuracoAberto extends Activity {
                                         if (mao_temp.jogoValido().valido){
                                             mao[jog].cartas.get(ct).selecionada = true;
                                             desceu = desceSelecionadas(jog,mesa[ms].maos.indexOf(iMao));
-                                            if (!desceu.getChildAnimations().isEmpty()){
-                                                descida.getChildAnimations().add(desceu);
+                                            if (desceu!=null){
+                                                animators.add(desceu);
                                                 System.out.println("[Jogador " + (jog+1) + "] Vou jogar esse coringa nesse joguinho que só tem " + t + " cartas.");
                                                 serviu = true;
                                                 atualizaPontos();
@@ -1076,8 +1070,8 @@ public class BuracoAberto extends Activity {
                                         //não pode descer se for bater e não tiver limpa, a não ser que o jogo onde vai descer vai virar uma limpa
                                         mao[jog].cartas.get(k).selecionada = true;
                                         desceu = desceSelecionadas(jog,m);
-                                        if (!desceu.getChildAnimations().isEmpty()){
-                                            descida.getChildAnimations().add(desceu);
+                                        if (desceu!=null){
+                                            animators.add(desceu);
                                             System.out.println("[Jogador " + (jog+1) + "] Ess" + (this.cartas[mao_temp.cartas.get(mao_temp.cartas.size()-1).carta - 1]) + " de " +  (this.naipes[mao_temp.cartas.get(mao_temp.cartas.size()-1).naipe - 1]) + " serviu.");
                                             serviu = true;
                                             atualizaPontos();
@@ -1100,8 +1094,8 @@ public class BuracoAberto extends Activity {
                     cc.selecionada=true;
                 }
                 desceu = desceSelecionadas(jog,-1);
-                if (!desceu.getChildAnimations().isEmpty()){
-                    descida.getChildAnimations().add(desceu);
+                if (desceu!=null){
+                    animators.add(desceu);
                     System.out.println("[Jogador " + (jog+1) + "] Olha, ficou só um jogo na minha mão, desci e bati.");
                     fazdenovo = true;
                 }
@@ -1134,8 +1128,8 @@ public class BuracoAberto extends Activity {
                                         }
                                     }
                                     desceu = desceSelecionadas(jog,-1);
-                                    if (!desceu.getChildAnimations().isEmpty()){
-                                        descida.getChildAnimations().add(desceu);
+                                    if (desceu!=null) {
+                                        animators.add(desceu);
                                         System.out.println("[Jogador " + (jog+1) + "] Desci um jogo de " +  this.naipes[np - 1] + ".");
                                         fazdenovo = true;
                                     }
@@ -1150,19 +1144,8 @@ public class BuracoAberto extends Activity {
                 if (fazdenovo) break;
             } //next np
         } //end while fazdenovo
-        /*for (ClasseMao cMao:mesa[ms].maos){
-            if (cMao.anim!=null && !cMao.anim.getAnimations().isEmpty()){
-                botsplay.addAnimation(cMao.anim);
-                cMao.anim = new AnimationSet(false);
-            }
-        }
-        AnimationSet tempseq = verificaSeAcabou(jog,ms);
-        if (tempseq!=null) {
-            botsplay.addAnimation(tempseq);
-        }
-        return botsplay;
-        */
-        return descida;
+        aSet.playTogether(animators);
+        return aSet;
     }
 
     private AnimatorSet botDescarta(int jog) {
@@ -1206,7 +1189,11 @@ public class BuracoAberto extends Activity {
         System.out.println("[Jogador " + (jog + 1) + "] Depois de " + (tentativas + 1) + " tentativa(s), descartei ess" + cartas[mao[jog].cartas.get(k).carta - 1] + " de " + naipes[mao[jog].cartas.get(k).naipe - 1] + ".");
         mao[jog].deSeleciona();
         mao[jog].zeraDescarte();
-        return(transfereCarta(jog,k,LIXO));
+        ArrayList<Animator> animators = new ArrayList<Animator>();
+        animators.add(transfereCarta(jog,k,LIXO));
+        AnimatorSet aSet = new AnimatorSet();
+        aSet.playTogether(animators);
+        return(aSet);
     }
 
     private AnimatorSet desceSelecionadas(int j, int iMao) {
@@ -1350,7 +1337,7 @@ public class BuracoAberto extends Activity {
                 podedescer = true;
             }
         }
-
+        boolean desceu = false;
         ArrayList<Animator> animators = new ArrayList<Animator>();
         AnimatorSet descida = new AnimatorSet();
         if (podedescer){
@@ -1358,6 +1345,7 @@ public class BuracoAberto extends Activity {
             ClasseOrdem ord = mao_temp.jogoValido();
             if (ord.valido){
                 //System.out.println("jogo valido");
+                desceu = true;
                 if (iMao>-1) {
                     //ordena o jogo da mesa antes de receber as novas cartas - O PROBLEMA ESTÁ AQUI ???
                     animators.add(ordenaJogo(ms, iMao, ord.ordem));
@@ -1400,23 +1388,20 @@ public class BuracoAberto extends Activity {
                     animators.add(mesa[ms].maos.get(iMao).fxMoveTarja(larguraCarta()));
                 }
                 atualizaPontos();
-            } else {
-                for (ClasseCarta crt:mao[j].cartas) {
-                    if (crt.selecionada) {
-                        if (j==JOG1) crt.fxToggleSelect(factor);
-                    } else crt.selecionada = false;
-                }
-            }
-        } else {
-            for (ClasseCarta crt:mao[j].cartas) {
-                if (crt.selecionada) {
-                    if (j==JOG1) crt.fxToggleSelect(factor);
-                    else crt.selecionada = false;
-                }
             }
         }
-        descida.playTogether(animators);
-        return descida;
+
+        if (!desceu) {
+            for (ClasseCarta crt:mao[j].cartas) {
+                if (crt.selecionada) {
+                    if (j!=JOG1) crt.selecionada = false;
+                }
+            }
+            return null;
+        } else {
+            descida.playTogether(animators);
+            return descida;
+        }
     }
 
     private AnimatorSet ordenaJogo(int ms, int m, ClasseMao maoOrdem){
