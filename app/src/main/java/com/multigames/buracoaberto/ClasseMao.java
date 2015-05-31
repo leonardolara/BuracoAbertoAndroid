@@ -40,10 +40,10 @@ public class ClasseMao {
 
     public ClasseMao (Context context) {
         mContext = context;
-        suja = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cuja), 70, 100, true);
-        limpa = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cimpa), 70, 100, true);
+        suja = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cuja), 120, 20, true);
+        limpa = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.cimpa), 120, 20, true);
         this.tarja = new ImageView(mContext);
-        this.tarja.setVisibility(View.VISIBLE);
+        this.tarja.setVisibility(View.INVISIBLE);
         this.tarja.setImageBitmap(limpa);
         this.tarja.setTranslationX(0.0f);
         this.tarja.setTranslationY(0.0f);
@@ -67,6 +67,7 @@ public class ClasseMao {
             ct.selecionada = false;
         }
     }
+
     public void setPosInit(float pX, float pY, float dX, float dY) {
         this.posInitX = pX;
         this.posInitY = pY;
@@ -431,8 +432,8 @@ public class ClasseMao {
     }
 
     public float largura(float lgCarta) {
-        float s = this.cartas.size();
-        return (s - 1f) * this.deltaX + lgCarta;
+        int s = this.cartas.size();
+        return (s - 1) * this.deltaX + lgCarta;
     }
 
     /*
